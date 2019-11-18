@@ -330,7 +330,9 @@ public abstract class RelOptUtil {
       RelDataType rowType1,
       RelDataType rowType2,
       boolean compareNames) {
-    if (rowType1 == rowType2) {
+    // change from == to equals for debugging purposes: force check column name for regex calcite
+    // if (rowType1 == rowType2) {
+    if (rowType1.equals(rowType2)) {
       return true;
     }
     if (compareNames) {
