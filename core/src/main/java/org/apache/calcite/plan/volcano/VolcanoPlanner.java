@@ -202,7 +202,6 @@ public class VolcanoPlanner extends AbstractRelOptPlanner {
   /**
    * Listener for this planner, or null if none set.
    */
-  RelOptListener listener;
 
   private RelNode originalRoot;
 
@@ -704,7 +703,7 @@ public class VolcanoPlanner extends AbstractRelOptPlanner {
    * @param root Root relational expression in a tree
    * @return Multi-line string describing the rules that created the tree
    */
-  private String provenance(RelNode root) {
+  protected String provenance(RelNode root) {
     final StringWriter sw = new StringWriter();
     final PrintWriter pw = new PrintWriter(sw);
     final List<RelNode> nodes = new ArrayList<>();
@@ -802,7 +801,7 @@ public class VolcanoPlanner extends AbstractRelOptPlanner {
    * Finds RelSubsets in the plan that contain only rels of
    * {@link Convention#NONE} and boosts their importance by 25%.
    */
-  private void injectImportanceBoost() {
+  protected void injectImportanceBoost() {
     final Set<RelSubset> requireBoost = new HashSet<>();
 
   SUBSET_LOOP:
@@ -822,7 +821,7 @@ public class VolcanoPlanner extends AbstractRelOptPlanner {
   /**
    * Clear all importance boosts.
    */
-  private void clearImportanceBoost() {
+  protected void clearImportanceBoost() {
     Collection<RelSubset> empty = Collections.emptySet();
 
     ruleQueue.boostImportance(empty, 1.0);
@@ -1473,7 +1472,7 @@ public class VolcanoPlanner extends AbstractRelOptPlanner {
    * @param subset Subset
    * @return Leader of subset's equivalence class
    */
-  private RelSubset canonize(final RelSubset subset) {
+  protected RelSubset canonize(final RelSubset subset) {
     if (subset.set.equivalentSet == null) {
       return subset;
     }
@@ -1819,16 +1818,6 @@ public class VolcanoPlanner extends AbstractRelOptPlanner {
       registerCount++;
     }
     return subset;
-  }
-
-  // implement RelOptPlanner
-  public void addListener(RelOptListener newListener) {
-    // TODO jvs 6-Apr-2006:  new superclass AbstractRelOptPlanner
-    // now defines a multicast listener; just need to hook it in
-    if (listener != null) {
-      throw Util.needToImplement("multiple VolcanoPlanner listeners");
-    }
-    listener = newListener;
   }
 
   // implement RelOptPlanner

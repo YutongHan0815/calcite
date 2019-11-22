@@ -30,7 +30,7 @@ import java.util.Map;
  * A match of a rule to a particular set of target relational expressions,
  * frozen in time.
  */
-class VolcanoRuleMatch extends VolcanoRuleCall {
+public class VolcanoRuleMatch extends VolcanoRuleCall {
   //~ Instance fields --------------------------------------------------------
 
   private final RelSet targetSet;

@@ -94,6 +94,8 @@ class RuleQueue {
   private static final Comparator<VolcanoRuleMatch> MATCH_COMPARATOR =
       new RuleMatchImportanceComparator();
 
+  private Comparator<VolcanoRuleMatch> matchComparator = MATCH_COMPARATOR;
+
   private final VolcanoPlanner planner;
 
   /**
@@ -149,6 +151,10 @@ class RuleQueue {
     for (PhaseMatchList matchList : matchListMap.values()) {
       matchList.clear();
     }
+  }
+
+  public void setRuleMatchComparator(Comparator<VolcanoRuleMatch> ruleMatchComparator) {
+    this.matchComparator = ruleMatchComparator;
   }
 
   /**
@@ -448,7 +454,7 @@ class RuleQueue {
         return null;
       }
       if (LOGGER.isTraceEnabled()) {
-        matchList.sort(MATCH_COMPARATOR);
+        matchList.sort(matchComparator);
         match = matchList.remove(0);
 
         StringBuilder b = new StringBuilder();
@@ -471,7 +477,7 @@ class RuleQueue {
         for (VolcanoRuleMatch match2 : matchList) {
           ++i;
           if (match == null
-              || MATCH_COMPARATOR.compare(match2, match) < 0) {
+              || matchComparator.compare(match2, match) < 0) {
             bestPos = i;
             match = match2;
           }
@@ -652,7 +658,7 @@ class RuleQueue {
    * for a particular
    * {@link VolcanoPlannerPhase phase of the planner's execution}.
    */
-  private static class PhaseMatchList {
+  public static class PhaseMatchList {
     /**
      * The VolcanoPlannerPhase that this PhaseMatchList is used in.
      */
