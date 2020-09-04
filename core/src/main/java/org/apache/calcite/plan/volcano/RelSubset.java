@@ -39,6 +39,7 @@ import org.apache.calcite.util.trace.CalciteTrace;
 
 import org.slf4j.Logger;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayDeque;
@@ -137,10 +138,11 @@ public class RelSubset extends AbstractRelNode {
     final RelMetadataQuery mq = getCluster().getMetadataQuery();
     for (RelNode rel : getRels()) {
       final RelOptCost cost = planner.getCost(rel, mq);
-      if (cost.isLt(bestCost)) {
-        bestCost = cost;
-        best = rel;
-      }
+      //if (cost.isLt(bestCost)) {
+        if (getCluster().getRuntimeCost().isLt(rel, best)) {
+          bestCost = cost;
+          best = rel;
+        }
     }
   }
 
@@ -325,7 +327,7 @@ public class RelSubset extends AbstractRelNode {
    * @param rel       Relational expression whose cost has improved
    * @param activeSet Set of active subsets, for cycle detection
    */
-  void propagateCostImprovements(VolcanoPlanner planner, RelMetadataQuery mq,
+public void propagateCostImprovements(VolcanoPlanner planner, RelMetadataQuery mq,
       RelNode rel, Set<RelSubset> activeSet) {
     Queue<Pair<RelSubset, RelNode>> propagationQueue = new ArrayDeque<>();
     for (RelSubset subset : set.subsets) {
@@ -353,35 +355,47 @@ public class RelSubset extends AbstractRelNode {
       return;
     }
     try {
-      RelOptCost cost = planner.getCost(rel, mq);
 
       // Update subset best cost when we find a cheaper rel or the current
       // best's cost is changed
-      if (cost.isLt(bestCost)) {
-        LOGGER.trace("Subset cost changed: subset [{}] cost was {} now {}",
-            this, bestCost, cost);
+      boolean isLt ;
+      RelOptCost cost = planner.getCost(rel, mq);
+      if (best == null) {
+        isLt = cost.isLt(bestCost);
+      } else if (rel.equals(best) ||
+              (cost.getCpu() != Double.MAX_VALUE && bestCost.getCpu() == Double.MAX_VALUE)) {
+        isLt = true;
+      } else {
+        isLt = getCluster().getRuntimeCost().isLt(rel, best);
+      }
+      // update rel cost
+      cost = planner.getCost(rel, mq);
+      //if (cost.isLt(bestCost)) {
+        if (isLt) {
+          LOGGER.trace("Subset cost changed: subset [{}] cost was {} now {}",
+                  this, bestCost, cost);
 
-        bestCost = cost;
-        best = rel;
-        // since best was changed, cached metadata for this subset should be removed
-        mq.clearCache(this);
+          bestCost = cost;
+          best = rel;
+          // since best was changed, cached metadata for this subset should be removed
+          mq.clearCache(this);
 
-        // Recompute subset's importance and propagate cost change to parents
-        planner.ruleQueue.recompute(this);
-        for (RelNode parent : getParents()) {
-          // removes parent cached metadata since its input was changed
-          mq.clearCache(parent);
-          final RelSubset parentSubset = planner.getSubset(parent);
+          // Recompute subset's importance and propagate cost change to parents
+          planner.ruleQueue.recompute(this);
+          for (RelNode parent : getParents()) {
+            // removes parent cached metadata since its input was changed
+            mq.clearCache(parent);
+            final RelSubset parentSubset = planner.getSubset(parent);
 
-          // parent subset will clear its cache in propagateCostImprovements0 method itself
-          for (RelSubset subset : parentSubset.set.subsets) {
-            if (parent.getTraitSet().satisfies(subset.traitSet)) {
-              propagationQueue.offer(Pair.of(subset, parent));
+            // parent subset will clear its cache in propagateCostImprovements0 method itself
+            for (RelSubset subset : parentSubset.set.subsets) {
+              if (parent.getTraitSet().satisfies(subset.traitSet)) {
+                propagationQueue.offer(Pair.of(subset, parent));
+              }
             }
           }
+          planner.checkForSatisfiedConverters(set, rel);
         }
-        planner.checkForSatisfiedConverters(set, rel);
-      }
     } finally {
       activeSet.remove(this);
     }

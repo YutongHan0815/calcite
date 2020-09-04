@@ -48,7 +48,7 @@ import org.apache.calcite.runtime.EnumerablesTest;
 import org.apache.calcite.sql.SqlSetOptionOperatorTest;
 import org.apache.calcite.sql.parser.SqlParserTest;
 import org.apache.calcite.sql.parser.SqlUnParserTest;
-import org.apache.calcite.sql.parser.parserextensiontesting.ExtensionSqlParserTest;
+//import org.apache.calcite.sql.parser.parserextensiontesting.ExtensionSqlParserTest;
 import org.apache.calcite.sql.test.DocumentationTest;
 import org.apache.calcite.sql.test.SqlAdvisorTest;
 import org.apache.calcite.sql.test.SqlOperatorTest;
@@ -145,7 +145,7 @@ import org.junit.runners.Suite;
     // medium tests (above 0.1s)
     SqlParserTest.class,
     SqlUnParserTest.class,
-    ExtensionSqlParserTest.class,
+//    ExtensionSqlParserTest.class,
     SqlSetOptionOperatorTest.class,
     SqlPrettyWriterTest.class,
     SqlValidatorTest.class,

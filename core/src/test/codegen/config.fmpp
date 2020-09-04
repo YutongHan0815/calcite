@@ -400,7 +400,7 @@ data: {
     dropStatementParserMethods: [
     ]
 
-    # Binary operators tokens
+    # Binary operators dictionarySet
     binaryOperatorsTokens: [
     ]
 

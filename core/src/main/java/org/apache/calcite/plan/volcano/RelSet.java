@@ -16,12 +16,7 @@
  */
 package org.apache.calcite.plan.volcano;
 
-import org.apache.calcite.plan.RelOptCluster;
-import org.apache.calcite.plan.RelOptListener;
-import org.apache.calcite.plan.RelOptUtil;
-import org.apache.calcite.plan.RelTrait;
-import org.apache.calcite.plan.RelTraitDef;
-import org.apache.calcite.plan.RelTraitSet;
+import org.apache.calcite.plan.*;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.CorrelationId;
 import org.apache.calcite.rel.metadata.RelMetadataQuery;
@@ -46,12 +41,12 @@ import java.util.Set;
  * <p>All of the expressions in an <code>RelSet</code> have the same calling
  * convention.</p>
  */
-class RelSet {
+public class RelSet {
   //~ Static fields/initializers ---------------------------------------------
 
   private static final Logger LOGGER = CalciteTrace.getPlannerTracer();
 
-  //~ Instance fields --------------------------------------------------------
+  //~ Instance fields
 
   final List<RelNode> rels = new ArrayList<>();
   /**
@@ -329,7 +324,13 @@ class RelSet {
               otherSubset.getCluster(),
               otherSubset.getTraitSet());
       // collect RelSubset instances, whose best should be changed
-      if (otherSubset.bestCost.isLt(subset.bestCost)) {
+      RelNode otherSubsetBest = otherSubset.best;
+      RelNode subsetBest = subset.best;
+      RuntimeCost runtimeCost = subset.getCluster().getRuntimeCost();
+
+      //if (otherSubset.bestCost.isLt(subset.bestCost)) {
+
+      if (otherSubsetBest != null && runtimeCost.isLt(otherSubsetBest, subsetBest)) {
         changedSubsets.put(subset, otherSubset.best);
       }
       for (RelNode otherRel : otherSubset.getRels()) {

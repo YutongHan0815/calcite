@@ -55,6 +55,7 @@ public class RelOptCluster {
   private final RelTraitSet emptyTraitSet;
   private RelMetadataQuery mq;
   private Supplier<RelMetadataQuery> mqSupplier;
+  private RuntimeCost runtimeCost;
 
   //~ Constructors -----------------------------------------------------------
 
@@ -92,7 +93,9 @@ public class RelOptCluster {
     setMetadataQuerySupplier(RelMetadataQuery::instance);
     this.emptyTraitSet = planner.emptyTraitSet();
     assert emptyTraitSet.size() == planner.getRelTraitDefs().size();
+    this.runtimeCost = new RuntimeCost(this.getMetadataQuery(), planner);
   }
+
 
   /** Creates a cluster. */
   public static RelOptCluster create(RelOptPlanner planner,
@@ -132,6 +135,14 @@ public class RelOptCluster {
 
   public RelMetadataProvider getMetadataProvider() {
     return metadataProvider;
+  }
+
+  public RuntimeCost getRuntimeCost() {
+    return runtimeCost;
+  }
+
+  public void setRuntimeCost(RuntimeCost runtimeCost) {
+    this.runtimeCost = runtimeCost;
   }
 
   /**

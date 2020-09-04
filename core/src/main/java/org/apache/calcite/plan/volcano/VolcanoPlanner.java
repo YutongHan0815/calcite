@@ -19,26 +19,7 @@ package org.apache.calcite.plan.volcano;
 import org.apache.calcite.avatica.util.Spaces;
 import org.apache.calcite.config.CalciteConnectionConfig;
 import org.apache.calcite.config.CalciteSystemProperty;
-import org.apache.calcite.plan.AbstractRelOptPlanner;
-import org.apache.calcite.plan.Context;
-import org.apache.calcite.plan.Convention;
-import org.apache.calcite.plan.ConventionTraitDef;
-import org.apache.calcite.plan.RelOptCost;
-import org.apache.calcite.plan.RelOptCostFactory;
-import org.apache.calcite.plan.RelOptLattice;
-import org.apache.calcite.plan.RelOptListener;
-import org.apache.calcite.plan.RelOptMaterialization;
-import org.apache.calcite.plan.RelOptMaterializations;
-import org.apache.calcite.plan.RelOptPlanner;
-import org.apache.calcite.plan.RelOptRule;
-import org.apache.calcite.plan.RelOptRuleCall;
-import org.apache.calcite.plan.RelOptRuleOperand;
-import org.apache.calcite.plan.RelOptSchema;
-import org.apache.calcite.plan.RelOptTable;
-import org.apache.calcite.plan.RelOptUtil;
-import org.apache.calcite.plan.RelTrait;
-import org.apache.calcite.plan.RelTraitDef;
-import org.apache.calcite.plan.RelTraitSet;
+import org.apache.calcite.plan.*;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelVisitor;
 import org.apache.calcite.rel.convert.Converter;
@@ -132,7 +113,7 @@ public class VolcanoPlanner extends AbstractRelOptPlanner {
   /**
    * List of all sets. Used only for debugging.
    */
-  final List<RelSet> allSets = new ArrayList<>();
+  public final List<RelSet> allSets = new ArrayList<>();
 
   /**
    * Canonical map from {@link String digest} to the unique
@@ -914,7 +895,9 @@ public class VolcanoPlanner extends AbstractRelOptPlanner {
         for (RelNode rel : subset.getRels()) {
           try {
             RelOptCost relCost = getCost(rel, metaQuery);
-            if (relCost.isLt(subset.bestCost)) {
+            RelOptCluster cluster = rel.getCluster();
+            //if (relCost.isLt(subset.bestCost)) {
+            if (cluster.getRuntimeCost().isLt(rel, subset.best)) {
               return litmus.fail("rel [{}] has lower cost {} than "
                       + "best cost {} of subset [{}]",
                       rel, relCost, subset.bestCost, subset);
@@ -961,7 +944,7 @@ public class VolcanoPlanner extends AbstractRelOptPlanner {
       return costFactory.makeInfiniteCost();
     }
     RelOptCost cost = mq.getNonCumulativeCost(rel);
-    if (!zeroCost.isLt(cost)) {
+    if (!zeroCost.isLe(cost)) {
       // cost must be positive, so nudge it
       cost = costFactory.makeTinyCost();
     }

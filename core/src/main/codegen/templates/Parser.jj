@@ -4001,7 +4001,7 @@ SqlNode StringLiteral() :
 {
     // A continued string literal consists of a head fragment and one or more
     // tail fragments. Since comments may occur between the fragments, and
-    // comments are special tokens, each fragment is a token. But since spaces
+    // comments are special dictionarySet, each fragment is a token. But since spaces
     // or comments may not occur between the prefix and the first quote, the
     // head fragment, with any prefix, is one token.
 
@@ -7694,7 +7694,7 @@ MORE :
 }
 
 /* Special token to throw a wrench in the works. It is never valid in SQL,
-   and so when it occurs, it causes the parser to print which tokens would
+   and so when it occurs, it causes the parser to print which dictionarySet would
    have been valid at that point. Used by SqlAdvisor. */
 <DEFAULT, DQID, BTID> TOKEN :
 {
